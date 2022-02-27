@@ -1,38 +1,30 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
+import sklearn.feature_selection as sk
 
-btc_df = pd.read_csv('./data/btc.csv')
-dji_df = pd.read_csv('./data/dji.csv')
+btc_dji_df = pd.read_csv('../data/btc_dji.csv')
 
-btc_dji_df = pd.DataFrame({
-    'Date': [],
-    'btc_closing_price': [],
-    'btc_opening_price': [],
-    'dji_closing_price': [],
-    'dji_opening_price': []
-})
+price_dif_btc = []
+price_dif_dji = []
 
-btc_df["Date"] = btc_df["Date"].apply(lambda x: x / 1000)
-# print(btc_df)
-# print(dji_df)
+for index, row in btc_dji_df.iterrows():
+    price_dif_btc.append(row['btc_opening_price'] - row['btc_closing_price'])
+    price_dif_dji.append(row['dji_opening_price'] - row['btc_closing_price'])
 
-for date in btc_df["Date"]:
-    if date in dji_df["Date"]:
-        index_date_dji = dji_df["Date"].index.tolist().index(date)
-        index_date_btc = btc_df["Date"].index.tolist().index(date)
+price_dif_btc = np.array(price_dif_btc)
+price_dif_dji = np.array(price_dif_dji)
 
-        btc_dji_df = pd.concat([date, 
-                                btc_df["close"][index_date_btc],
-                                btc_df["open"][index_date_btc],
-                                dji_df["Close"][index_date_dji],
-                                dji_df["Open"][index_date_dji]],
-                                
-                                columns=["Date", "btc_closing_price", "btc_opening_price", "dji_closing_price", "dji_opening_price"])
+price_dif_dji = price_dif_dji.reshape(-1, 1)
+price_dif_btc = price_dif_btc.reshape(-1, 1)
 
-        
+print(price_dif_btc)
+print(price_dif_dji)
 
-# btc_dji_df = pd.merge(btc_df, dji_df, how='outer', on=["Date"])
-print(btc_dji_df)
+price_btc = np.array(btc_dji_df['btc_closing_price'])
+price_dji = np.array(btc_dji_df['dji_closing_price'])
 
-# plt.plot(btc_df["high"], dji_df["High"])
-# plt.show()
+price_btc = price_btc.reshape(-1, 1)
+price_dji = price_dji.reshape(-1, 1)
+
+print(sk.r_regression(price_btc, price_dji))
